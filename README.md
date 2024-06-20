@@ -1,6 +1,7 @@
 <h1>Retropong</h1>
 
-![ss](https://github.com/sekak/Retro-pong/assets/53265264/a5623006-6e0f-4119-b52e-edbb57edb0c5) </br>
+![ss](https://github.com/sekak/Retro-pong/assets/53265264/a5623006-6e0f-4119-b52e-edbb57edb0c5)
+</br>
 The Retropong project represents the culmination of the 1337 Common Core School curriculum, serving as the final collaborative endeavor for teams comprising a minimum of three to five members. This project is subdivided into three distinct components: the initial phase focuses on Auth/Authorization, followed by the integration of a chat system in the second phase, with the third phase dedicated to the development of the game itself.
 
 # Technologies Used:
