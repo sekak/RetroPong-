@@ -29,7 +29,7 @@ The Retropong project represents the culmination of the 1337 Common Core School 
 
      Retro Pong features a real-time chat system that allows players to communicate with each other while enjoying the game. We leverage WebSockets to enable instant messaging
 
-# Previews:
+# Preview:
 
 https://github.com/sekak/Retro-pong/assets/53265264/41f0dff2-bdcb-4de7-abd8-ad70c8eac93d
 
