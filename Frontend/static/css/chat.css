@@ -50,6 +50,25 @@ body {
     overflow-x: hidden;
     display: flex;
     align-items: center;
+    animation: pop-up .6s ease;
+}
+
+@keyframes pop-up {
+    0% {
+        width: 10%;
+        transform: translateZ(0px);
+        opacity: 0;
+    }
+
+    100% {
+        width: 100%;
+        transform: translateZ(100px);
+        opacity: 1;
+    }
+}
+
+.items:hover {
+    scale: 1.1;
 }
 
 .menu {
@@ -376,9 +395,9 @@ body {
 }
 
 .Ruser {
-    background: rgba(0, 0, 0, 0.073);
-    border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(255, 254, 254, 0.123);
+    background: rgba(0, 0, 0, 0.327);
+    border-radius: 10px;
+    box-shadow: 0 4px 30px rgba(209, 53, 53, 0.123);
     backdrop-filter: blur(9.3px);
     -webkit-backdrop-filter: blur(9.3px);
 }
@@ -637,6 +656,14 @@ body {
     .navFriend {
         gap: 20px !important;
     }
+    .hiddenData{
+        display: none !important;
+    }
+    .chFriends{
+        width: max-content;
+        display: flex !important;
+
+    }
 }
 
 /* media 768px */
@@ -716,4 +743,9 @@ body {
     .navFriend {
         gap: 5px !important;
     }
+}
+
+.modeBlockUser{
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.5);    
 }

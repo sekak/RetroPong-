@@ -1,6 +1,8 @@
 let c = true
 let isRequest = false 
-
+let obejctOfChannel = {}
+let isListen = false
+let web = null
 
 const openSidebar = (sidebar, items) => {
     sidebar.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
@@ -143,24 +145,60 @@ async function fetchDataChat(target_user_id)
     return await DataChatFetching(target_user_id)
 }
 
-async function implementBtns(target, target_user_id) {
+
+//socket for channel    
+function addSocketChannel() 
+{
+    const chMessages = document.getElementById('chMessages');
+    web = new WebSocket('ws://localhost:8002/ws/chat/channel/')
+    web.onopen = ()=>{console.log("connected")}
+    web.onmessage = function (event) {
+        let data = JSON.parse(event.data)
+        chMessages.innerHTML +=  message_channel(data,data)
+        chMessages.scrollTop = chMessages.scrollHeight
+    }
+}
+
+const handleAppearance = (type)=>{
     const page_discussion = document.getElementById('page_discussion');
     const page_chat = document.getElementById('page_chat');
     const page_discover = document.getElementById('page_discover');
     const page_channel = document.getElementById('page_channel');
-    // channel
-
+    const chMessages = document.getElementById('chMessages');
     
-   
+    addSocketChannel() // add socket to channel 
+    page_chat.classList.add('d-none');
+    page_discover.classList.add('d-none');
+
+    for(let i = 0; i < 7; i++)
+        chMessages.innerHTML += contentMessageSkeleton(); // skeleton
+    if(type === 'toChat')
+    {
+        page_discussion.classList.remove('d-none');
+        page_channel.classList.add('d-none');
+    }else if(type === 'toChannel')
+    {
+        page_discussion.classList.add('d-none');
+        page_channel.classList.remove('d-none');
+    }
+}
+
+// this function is used to fetch channel message
+async function fetchMessageChannel(channel_user)
+{
+    const  {userId, token} = GetUserIdToken();
+    const channel_message = await fetchData(`http://127.0.0.1:8002/chat/channel/${channelObj.chID}/other`, 'GET', token)
+    obejctOfChannel = {channel_user, channel_message}
+    loadDataChannelMessage(channel_message, channel_user)
+}
+
+async function implementBtns(target, target_user_id) {
     const Cback = document.getElementById('contact_user');
     const  {userId, token} = GetUserIdToken();
+    Cback.src = "/static/img/general/Account.png"
 
     if (target === 'toChat' && isRequest === false) {
-        page_chat.classList.add('d-none');
-        page_discussion.classList.remove('d-none');
-        page_discover.classList.add('d-none');
-        page_channel.classList.add('d-none');
-        Cback.src = "/static/img/general/Account.png"
+        handleAppearance('toChat') // add socket
         target_id = target_user_id
         const data = await fetchDataChat(target_user_id)
         localStorage.setItem('coversation_id', data.data.conversation_id)
@@ -175,49 +213,56 @@ async function implementBtns(target, target_user_id) {
     //channel
     if(target === 'toChannel')
     {
-        page_chat.classList.add('d-none');
-        page_discussion.classList.add('d-none');
-        page_discover.classList.add('d-none');
-        page_channel.classList.remove('d-none');
-        const channel_message = await fetchData(`http://127.0.0.1:8002/chat/channel/${channelObj.chID}`, 'GET', token)
-        handleChannel(channel_message)
+        handleAppearance('toChannel')
+        const channel_user = await fetchData(`http://127.0.0.1:8002/chat/channel/${channelObj.chID}/users`, 'GET', token)
+        handleChannelUsers(channel_user)
+        fetchMessageChannel(channel_user)
     }
 }
 
-function handleChannel(channel_message)
-{
-    console.log(channel_message)
-    const chUser = document.getElementById('chUser');
+function loadDataChannelMessage(channel_message, channel_user){
     const chMessages = document.getElementById('chMessages');
+    if(channel_message.status === "200")
+    {  
+        chMessages.innerHTML = channel_message?.data?.messages?.map(msg => message_channel(msg,channel_user?.data?.users?.find(user=> user.id === msg.cmSender))).join('')
+        AddListener() // listener for send message
+    }
+}
+
+// channel user
+function handleChannelUsers(channel_user)
+{
+    const chUser = document.getElementById('chUser');
     const chTitle = document.getElementById('chTitle');
     const chDesc = document.getElementById('chDesc');
 
-    if(channel_message.status === "200")
+    if(channel_user.status === "200")
     {   
         chTitle.innerHTML = "#" + channelObj?.chName
         chDesc.innerHTML = channelObj?.chDesc
-        chUser.innerHTML = channel_message?.data?.users?.map(user => member(user)).join('')
-        chMessages.innerHTML = channel_message?.data?.messages?.map(msg => message_channel(msg,channel_message?.data?.users?.find(user=> user.id === msg.cmSender))).join('')
-        AddListener()
-        console.log("object")
+        chUser.innerHTML = channel_user?.data?.users?.map(user => member(user)).join('')
     }
 }
 
+// add listener to send message
 function AddListener()
 {
     const {userId, token} = GetUserIdToken();
     const chsendBtn = document.getElementById('chsendBtn');
     const chInput = document.getElementById('chInput');
+    const chMessages = document.getElementById('chMessages');
     
-    chsendBtn.addEventListener('click', async () => {
+    if(isListen === true)
+        return
+    chMessages.scrollTop = chMessages.scrollHeight
+    chsendBtn.addEventListener('click', () => {
         const value = chInput.value
         if(value === "")
             return
         chInput.value = ""
         chInput.focus()
-        console.log(channelObj)
-        const data = await fetchData(`http://localhost:8002/chat/channel/send/${channelObj.chID}/${userId}/`,'POST',token,{"content":value}) 
-        console.log(data)
+        web.send(JSON.stringify({"message": value, "id": userId, "channel_id": channelObj.chID,"username":sessionStorage.getItem('username'),"profile": sessionStorage.getItem('profilepic')}))
+        isListen = true
     })
 }
  

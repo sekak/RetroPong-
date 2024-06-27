@@ -51,13 +51,15 @@ const GetUserIdToken=()=>{
 
 // load message in real time 
 function LoadMessageRealTime(value, profilepic, username) {
+    console.log(value)
     const CcontentConver = document.getElementById('CcontentConver');
     CcontentConver.innerHTML += message({
-        "content": value, "user":
-            { "profilepic": profilepic, "username": username }
+        "content": value, "user":{ "profilepic": profilepic, "username": username }
     })
     CcontentConver.scrollTop = CcontentConver.scrollHeight
 }
 
-
- 
+// Get time
+function getTime(time) {
+    return ' ' + time.split('T')[0] + ' ' + time.split('T')[1].split('.')[0]
+}

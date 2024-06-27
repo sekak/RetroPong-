@@ -22,7 +22,6 @@ class Users(models.Model):
     def __str__(self):
         return self.uUsername
     
-    
     class Meta:
         db_table = 'UserDataManagement_user'
 

@@ -14,7 +14,7 @@ class JsonObj:
         otherUsers = User.objects.exclude(Q(id__in=user.AFriends) | Q(id__in=user.ARequests) | Q(id__in=user.ABlocked) | Q(id__in=user.ABlockedBy) | Q(id=user.id))
         invitation = [x.id for x in otherUsers if Invitation.objects.filter(Q(iSender=user.id) & Q(iReceiver=x.id))]
         channel = Channel.objects.filter(chMembers__contains=[user.id])
-        # print("channel", channel[0].values())
+        print(channel.values())
         return {
             "id": user.id,
             "username": user.uUsername,

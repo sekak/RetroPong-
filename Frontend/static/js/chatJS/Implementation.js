@@ -4,11 +4,11 @@ let contact_id = null
 let target_id = ""
 let conversation = ""
 let storeDataWs = {}
-let storeDataUser = {}
 let channelObj = {}
 
 function Websocket() {
     const userId = document.cookie.split(';')[0].split('=')[1]
+    console.log(userId)
     if (userId) {
         if (!ws)
             ws = new WebSocket(`ws://localhost:8002/ws/chat/${userId}`)
@@ -17,7 +17,7 @@ function Websocket() {
         ws.onclose = (event) => {
             console.log('closing socket!', event)
             ws = null
-            setTimeout(() => { Websocket() }, 2000)
+            setTimeout(() => { Websocket() }, 3000)
         }
         ws.onmessage = function (event) {
             let data = JSON.parse(event.data)
@@ -47,7 +47,8 @@ async function UserContactFetching() {
         LoadDataSuggestion(data.data)
         type = localStorage.getItem('type')
         LoadDataFriend(type ? type : 'online')
-        LoadChannel(data.data?.channel)
+        if(data?.data?.channel.length !== 0)
+            LoadChannel(data?.data?.channel)
     }
     else
         handleError()
@@ -116,7 +117,6 @@ async function LoadDataFriend(type) {
 function LoadChannel(channel) {
     const channel_title = document.getElementById('channel_title')
     const channel_general = document.getElementById('channel')
-
     if(channel)
     {
         channelObj = channel[0]
@@ -138,7 +138,6 @@ async function SendInvite(target_user_id) {
 //send message
 const ClickSend = async (value, target_user_id) => {
     const Cinput = document.getElementById('Cinput');
-    const CsendBtn = document.getElementById('CsendBtn');
     const { userId, token } = GetUserIdToken();
     let data = []
 
@@ -176,23 +175,11 @@ loadDataChat = (data, target_user_id) => {
 
     conversation = data?.conversation_id
     CinfoUser.innerHTML = data && chatFriend(data?.users[0])
-    storeDataUser = data?.users[0]
+    console.log(data)
     CcontentConver.innerHTML = data?.messages?.map(msg => message(msg, target_user_id)).join('') || ""
     CcontentConver.scrollTop = CcontentConver.scrollHeight
     contact_id = target_user_id
-    setTimeout(() => { SendMessage(target_user_id) }, 1000)
     Cinput.focus()
+    setTimeout(() => { SendMessage(target_user_id) }, 1000)
 }
-
-setInterval(() => {
-    const circleStatus = document.getElementById('circleStatus')
-
-    if (storeDataUser.id === storeDataWs.id)
-        if (storeDataWs.status && circleStatus) {
-            circleStatus.classList.remove('offline')
-            circleStatus.classList.add('online')
-        } else if (circleStatus) {
-            circleStatus.classList.remove('online')
-            circleStatus.classList.add('offline')
-        }
-}, 1000)
+ 

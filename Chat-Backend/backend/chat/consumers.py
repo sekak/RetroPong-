@@ -3,14 +3,12 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from .models import *   
 from channels.db import database_sync_to_async
+from asgiref.sync import sync_to_async
+
 
 
 class UpdateConsumer(AsyncWebsocketConsumer):
-    @database_sync_to_async
-    def save_status(self, id, status):
-        user = User.objects.get(id=id)
-        user.isOnline = status
-        user.save()
+  
 
     async def connect(self):
         self.room_group_name = 'updates'
@@ -21,25 +19,12 @@ class UpdateConsumer(AsyncWebsocketConsumer):
             'updates',
             self.channel_name
         )
-        await self.save_status(self.id, True)
-
+ 
         await self.accept()
-
-        await self.channel_layer.group_send(self.room_group_name,{
-            'type': 'handle_empty_message',
-            'message': 'statusOnlinePing',
-            'status': True,
-            'id': self.id
-            })
+ 
 
     async def disconnect(self, close_code):
-        await self.save_status(self.id, False)
-        await self.channel_layer.group_send(self.room_group_name,{
-            'type': 'handle_empty_message',
-            'message': 'statusOnlinePing',
-            'status': False,
-            'id': self.id
-            })
+         
 
         # Leave room group
         await self.channel_layer.group_discard(
@@ -103,75 +88,66 @@ class UpdateConsumer(AsyncWebsocketConsumer):
         }))
 
 
-class StatusOnline(AsyncWebsocketConsumer):
 
-   
+class ChannelSocket(AsyncWebsocketConsumer):
+    @database_sync_to_async
+    def save_message(self,message, id,  channel_id):
+        ChannelMessage.objects.create(cmContent=message, cmSender=id,  chID=channel_id).save()
 
     async def connect(self):
-        self.room_group_name = 'status'
+        self.room_group_name = 'channel'
 
-        self.id = self.scope['url_route']['kwargs']['id']
-
+        # Join room group
         await self.channel_layer.group_add(
-            'status',
+            self.room_group_name,
             self.channel_name
         )
 
-        await self.save_status(self.id, True)
-
         await self.accept()
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'status_message',
-                'id': self.id,
-                'status': True
-            }
-        )
-
-
-    async def disconnect(self, close_code):
-        await self.save_status(self.id, False)
-        print("this id is diconnected: ", self.id)
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'status_message',
-                'id': self.id,
-                'status': False
-            }
-        )
-
+    async def disconnect(self):
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-        self.close()
 
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        status = text_data_json['status']
-        # id = text_data_json['id']
+        message = text_data_json['message']
+        id = text_data_json['id']
+        profile = text_data_json['profile']
+        username = text_data_json['username']
+        channel_id = text_data_json['channel_id']
+        #save message to database here 
+        await  self.save_message(message, id, channel_id)
 
+        # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'status_message',
-                'id': self.id,
-                'status': status
+                'type': 'chat_message',
+                'message': message,
+                'id': id,
+                "username": username,
+                "profile": profile
             }
         )
 
     # Receive message from room group
-    async def status_message(self, event):
-        status = event['status']
+    async def chat_message(self, event):
+        message = event['message']
         id = event['id']
+        profile = event['profile']
+        username = event['username']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
+            'cmContent': message,
             'id': id,
-            'status': status
+            'profilepic': profile,
+            'username': username
         }))
+
+    

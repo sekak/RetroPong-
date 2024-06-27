@@ -184,17 +184,18 @@ def sendMessage(request, id, contact_id, conversation_id):
 
 
 # Channel messages
-def get_channel_messages(request, channel_id):
+def get_channel_messages(request, channel_id, type=None):
     token, user_id = verify_token(request)
     if (token is None or user_id is None):
         return JsonResponse({"status":"Unauthorized"}, status=401)
 
     try:
-        messages = ChannelMessage.objects.filter(chID=channel_id)
         users = Channel.objects.get(chID=channel_id).chMembers
         user = [JsonObj.user_chat(User.objects.get(id=x)) for x in users]
-
-        return JsonResponse({"messages": list(messages.values()),"users":list(user)}, status=200)
+        if type == "users":
+            return JsonResponse({"users":list(user)}, status=200)
+        messages = ChannelMessage.objects.filter(chID=channel_id)
+        return JsonResponse({"messages": list(messages.values())}, status=200)
     except:
         return JsonResponse({"status":"Not found this channel"}, status=404)
 

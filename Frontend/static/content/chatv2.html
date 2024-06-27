@@ -104,7 +104,7 @@
 
     <!--Channel page-->
     <div id="page_channel" class="main chat w-100 h-100 d-none">
-        <div class="chatHeader w-100 h-10 position-relative">
+        <div class="chatHeader w-100 h-10 position-relative d-flex align-items-center justify-content-center">
             <div class="d-flex flex-column align-items-center justify-content-center fw-bold">
                 <h1 id="chTitle" class="focus-in-expand Ctitle taprom"></h1>
                 <span id="chDesc" class="focus-in-expand nokora text-secondary h-100" style="font-weight: 300;"></span>
@@ -115,7 +115,7 @@
 
         <div class="Ccontent d-flex h-100 w-100 ">
 
-            <div class="Cconverstation w-80 h-100 p-4 overflow-hidden">
+            <div id="channel_scroll" class="Cconverstation w-100 h-100 p-4 overflow-hidden">
                 <div id="chMessages" class="CcontentConver w-100 h-80 d-flex flex-column overflow-auto gap-4">
                     <!--messages-->
                 </div>
@@ -129,8 +129,7 @@
             </div>
             <!--Friend info-->
             <div id='chUser' class="chFriends d-flex flex-column w-20">
-                
- 
+
             </div>
         </div>
     </div>
